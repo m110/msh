@@ -4,12 +4,16 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pwd.h>
 
 #include "commands.h"
 
 #define MSH_READLINE_BUFSIZE 1024
+
 #define MSH_TOK_BUFSIZE 64
 #define MSH_TOK_DELIM "\t\r\a\n "
+
+#define MSH_CWD_BUFSIZE 128
 
 void msh_fail(char *message) {
     fprintf(stderr, "msh: %s\n", message);
@@ -111,6 +115,39 @@ int msh_execute(char **args) {
     return msh_launch(args);
 }
 
+char *msh_get_username() {
+    struct passwd *pw;
+    uid_t uid = geteuid();
+
+    pw = getpwuid(uid);
+    if (pw == NULL) {
+        perror("getpwuid");
+        msh_fail("getpwuid error");
+    }
+
+    return pw->pw_name;
+}
+
+void msh_print_prompt() {
+    char suffix = '$';
+
+    char host[MSH_CWD_BUFSIZE];
+    if (gethostname(host, MSH_CWD_BUFSIZE) != 0) {
+        perror("gethostname");
+        msh_fail("gethostname error");
+    }
+
+    char *user = msh_get_username();
+
+    char cwd[MSH_CWD_BUFSIZE];
+    if (getcwd(cwd, MSH_CWD_BUFSIZE) == NULL) {
+        perror("getcwd");
+        msh_fail("getcwd error");
+    }
+
+    printf("%s@%s %s %c ", user, host, cwd, suffix);
+}
+
 void msh_load_config() {}
 
 void msh_loop() {
@@ -119,7 +156,7 @@ void msh_loop() {
     int status;
 
     do {
-        printf("msh$ ");
+        msh_print_prompt();
         line = msh_read_line();
         args = msh_split_line(line);
         status = msh_execute(args);
