@@ -5,9 +5,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "commands.h"
+
 #define MSH_READLINE_BUFSIZE 1024
 #define MSH_TOK_BUFSIZE 64
-#define MSH_TOK_DELIM "\t\r\a\n"
+#define MSH_TOK_DELIM "\t\r\a\n "
 
 void msh_fail(char *message) {
     fprintf(stderr, "msh: %s\n", message);
@@ -95,6 +97,20 @@ int msh_launch(char **args) {
     return 1;
 }
 
+int msh_execute(char **args) {
+    if (args[0] == NULL) {
+        return 1;
+    }
+
+    for (int i = 0; i < msh_num_builtins(); i++) {
+        if (strcmp(args[0], builtins[i].name) == 0) {
+            return (*builtins[i].cmd)(args);
+        }
+    }
+
+    return msh_launch(args);
+}
+
 void msh_load_config() {}
 
 void msh_loop() {
@@ -105,8 +121,11 @@ void msh_loop() {
     do {
         printf("msh$ ");
         line = msh_read_line();
+        args = msh_split_line(line);
+        status = msh_execute(args);
 
         free(line);
+        free(args);
     } while (status);
 }
 

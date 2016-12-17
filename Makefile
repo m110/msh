@@ -1,4 +1,4 @@
 all: msh
 
-msh: msh.c
-	gcc -o msh msh.c
+msh: *.c *.h
+	gcc -o msh msh.c commands.c
