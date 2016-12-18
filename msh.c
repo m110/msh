@@ -32,13 +32,17 @@ char *msh_read_line() {
     while (1) {
         int c = getchar();
 
-        if (c == EOF || c == '\n') {
+        if (c == '\n') {
             buffer[position] = '\0';
             break;
         }
 
         buffer[position] = c;
         position++;
+
+        if (c == EOF) {
+            break;
+        }
 
         // Reallocate the buffer
         if (position >= bufsize) {
@@ -158,6 +162,12 @@ void msh_loop() {
     do {
         msh_print_prompt();
         line = msh_read_line();
+
+        if (line[0] == EOF) {
+            printf("\n");
+            break;
+        }
+
         args = msh_split_line(line);
         status = msh_execute(args);
 
