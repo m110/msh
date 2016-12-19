@@ -7,9 +7,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "common.h"
 #include "commands.h"
 
-int msh_launch(char **args);
-int msh_execute(char **args);
+int msh_launch(struct command_ctx *ctx);
+int msh_execute(struct command_ctx *ctx);
 
 #endif

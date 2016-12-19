@@ -70,6 +70,44 @@ char **msh_split_line(char *line) {
     return tokens;
 }
 
+struct command_ctx msh_process_args(char **args) {
+    char *stdin_file = NULL;
+    char *stderr_file = NULL;
+    char *stdout_file = NULL;
+
+    int bufsize = MSH_TOK_BUFSIZE;
+    char **new_args = calloc(bufsize, sizeof(char*));
+
+    int position = 0;
+    int new_position = 0;
+
+    while (args[position] != NULL) {
+        if (args[position][0] == MSH_STDOUT_SYMBOL) {
+            stdout_file = args[position] + 1;
+            position++;
+            continue;
+        }
+
+        if (args[position][0] == MSH_STDIN_SYMBOL) {
+            stdin_file = args[position] + 1;
+            position++;
+            continue;
+        }
+
+        new_args[new_position] = args[position];
+        position++;
+        new_position++;
+    }
+
+    struct command_ctx ctx = {
+        .args = new_args,
+        .stdin_file = stdin_file,
+        .stderr_file = stderr_file,
+        .stdout_file = stdout_file,
+    };
+    return ctx;
+}
+
 char *msh_get_username() {
     struct passwd *pw;
     uid_t uid = geteuid();

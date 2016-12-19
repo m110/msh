@@ -20,7 +20,8 @@ void msh_loop() {
         }
 
         args = msh_split_line(line);
-        status = msh_execute(args);
+        struct command_ctx ctx =  msh_process_args(args);
+        status = msh_execute(&ctx);
 
         free(line);
         free(args);
